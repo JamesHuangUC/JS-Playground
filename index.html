@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>JavaScript Playground</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+</head>
+
+<body>
+    <button onclick="getResult()" style="width:100%;" class="btn btn-info">Run (ctrl-s)</button>
+    <div id="container" style="width:100%;height:600px;border:1px solid grey"></div>
+    <iframe id="result" style="width:100%;resize: vertical;"></iframe>
+    <script src="min/vs/loader.js"></script>
+    <script>
+    require.config({ paths: { 'vs': 'min/vs' } });
+    require(['vs/editor/editor.main'], function() {
+        window.editor = monaco.editor.create(document.getElementById('container'), {
+            language: 'javascript',
+            theme: "vs-dark"
+        });
+
+        window.editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, function() {
+            getResult();
+        });
+    });
+
+    var outputFrame = document.getElementById("result");
+
+    window.res = "";
+    console.oldLog = console.log;
+    console.log = function(str, err = false) {
+        window.res += str + "\n";
+    };
+
+    var getResult = function() {
+        var r = $.Deferred();
+        console.log("", err = false);
+        window.res = "";
+        var outputCode = "";
+        var inputCode = window.editor.getValue();
+        try {
+            outputCode = eval(inputCode);
+            if (outputCode !== undefined) {
+                window.res += outputCode + "\n";
+            } else {
+                if (outputCode === "") {
+                    window.res += "undefined" + "\n";
+                }
+            }
+        } catch (ex) {
+            ex = '<p style="color: #FF0000">' + ex + '</p>';
+            console.log(ex, err = true);
+        }
+        $("#output").val(window.res);
+
+        var split = window.res.split('\n');
+        var clean = split.filter(function(n) { return n });
+        var joined = clean.join('</p><p>');
+        var result = '<p>' + joined + '</p>';
+
+        outputFrame.srcdoc = result;
+    }
+    </script>
+</body>
+
+</html>
